@@ -1,0 +1,39 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body { font-family: Arial, sans-serif; color: #222; margin: 24px; }
+    h1 { font-size: 18px; margin-bottom: 4px; }
+    .subtitle { color: #666; font-size: 12px; margin-bottom: 20px; }
+    table { width: 100%; border-collapse: collapse; font-size: 12px; }
+    th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+    th { background: #f5f5f5; }
+  </style>
+</head>
+<body>
+  <h1>Insurance Quote Comparison</h1>
+  <div class="subtitle"><%= corporateCustomer && corporateCustomer.companyName ? corporateCustomer.companyName : "" %></div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Insurer</th>
+        <th>Plan</th>
+        <th>Annual Premium</th>
+        <th>Notes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <% (quotes || []).forEach(function (quote) { %>
+        <tr>
+          <td><%= quote.insurerName %></td>
+          <td><%= quote.planName %></td>
+          <td><%= quote.premium %></td>
+          <td><%= quote.notes || "" %></td>
+        </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</body>
+</html>

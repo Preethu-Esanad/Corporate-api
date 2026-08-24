@@ -1,0 +1,72 @@
+#!/usr/bin/env node
+
+require("dotenv").config();
+
+var app = require("../app");
+var http = require("http");
+var mongoose = require("mongoose");
+const environment = require("../utils/environment");
+
+var port = normalizePort(environment.port || "5000");
+app.set("port", port);
+
+var server = http.createServer(app);
+
+server.listen(port, "0.0.0.0");
+server.on("error", onError);
+server.on("listening", onListening);
+
+function normalizePort(val) {
+  var port = parseInt(val, 10);
+  if (isNaN(port)) return val;
+  if (port >= 0) return port;
+  return false;
+}
+
+function onError(error) {
+  if (error.syscall !== "listen") throw error;
+  var bind = typeof port === "string" ? "Pipe " + port : "Port " + port;
+  switch (error.code) {
+    case "EACCES":
+      console.error(bind + " requires elevated privileges");
+      process.exit(1);
+    case "EADDRINUSE":
+      console.error(bind + " is already in use");
+      process.exit(1);
+    default:
+      throw error;
+  }
+}
+
+function onListening() {
+  var addr = server.address();
+  var bind = typeof addr === "string" ? "pipe " + addr : "port " + addr.port;
+  console.log("Listening on " + bind);
+}
+
+let isShuttingDown = false;
+function gracefulShutdown(err, type) {
+  if (isShuttingDown) return;
+  isShuttingDown = true;
+  console.error(`Fatal: ${type}. Shutting down gracefully...`, err);
+
+  server.close(async () => {
+    try {
+      await mongoose.connection.close();
+      process.exit(1);
+    } catch (shutdownErr) {
+      console.error("Error during shutdown cleanup:", shutdownErr);
+      process.exit(1);
+    }
+  });
+
+  setTimeout(() => {
+    console.error("Forced shutdown timeout elapsed. Exiting process.");
+    process.exit(1);
+  }, 4000);
+}
+
+process.on("uncaughtException", (err) => gracefulShutdown(err, "uncaughtException"));
+process.on("unhandledRejection", (reason) => {
+  console.error("Unhandled Rejection:", reason);
+});
